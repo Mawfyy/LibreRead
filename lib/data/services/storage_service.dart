@@ -1,67 +1,53 @@
-import 'package:hive_ce/hive.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/recent_file.dart';
 
 class StorageService {
-  static late Box<RecentFile> _recentFilesBox;
-  static late Box _settingsBox;
-
-  static const String _recentFilesBoxName = 'recent_files';
-  static const String _settingsBoxName = 'settings';
+  static List<RecentFile> _recentFiles = [];
   static const int _maxRecentFiles = 50;
 
   static Future<void> init() async {
-    Hive.registerAdapter(RecentFileAdapter());
-    Hive.registerAdapter(FileTypeAdapter());
-    _recentFilesBox = await Hive.openBox<RecentFile>(_recentFilesBoxName);
-    _settingsBox = await Hive.openBox(_settingsBoxName);
+    _recentFiles = await _loadFromPrefs();
   }
 
   static List<RecentFile> getRecentFiles() {
-    final files = _recentFilesBox.values.toList();
-    files.sort((a, b) => b.lastOpened.compareTo(a.lastOpened));
-    return files;
+    final sorted = List<RecentFile>.from(_recentFiles);
+    sorted.sort((a, b) => b.lastOpened.compareTo(a.lastOpened));
+    return sorted;
   }
 
   static Future<void> addOrUpdateFile(RecentFile file) async {
-    final existingKey = _recentFilesBox.values.toList().indexWhere(
-      (f) => f.path == file.path,
-    );
-
-    if (existingKey >= 0) {
-      await _recentFilesBox.putAt(existingKey, file);
+    final idx = _recentFiles.indexWhere((f) => f.path == file.path);
+    if (idx >= 0) {
+      _recentFiles[idx] = file;
     } else {
-      if (_recentFilesBox.length >= _maxRecentFiles) {
-        final files = getRecentFiles();
-        final oldest = files.last;
-        final oldestKey = _recentFilesBox.values.toList().indexWhere(
-          (f) => f.path == oldest.path,
-        );
-        if (oldestKey >= 0) {
-          await _recentFilesBox.deleteAt(oldestKey);
-        }
+      if (_recentFiles.length >= _maxRecentFiles) {
+        _recentFiles.sort((a, b) => a.lastOpened.compareTo(b.lastOpened));
+        _recentFiles.removeAt(0);
       }
-      await _recentFilesBox.add(file);
+      _recentFiles.add(file);
     }
+    await _saveToPrefs();
   }
 
   static Future<void> removeFile(String path) async {
-    final key = _recentFilesBox.values.toList().indexWhere(
-      (f) => f.path == path,
-    );
-    if (key >= 0) {
-      await _recentFilesBox.deleteAt(key);
-    }
+    _recentFiles.removeWhere((f) => f.path == path);
+    await _saveToPrefs();
   }
 
   static Future<void> clearAll() async {
-    await _recentFilesBox.clear();
+    _recentFiles.clear();
+    await _saveToPrefs();
   }
 
-  static double getFontSize() {
-    return _settingsBox.get('font_size', defaultValue: 1.0);
+  static Future<List<RecentFile>> _loadFromPrefs() async {
+    final prefs = await SharedPreferences.getInstance();
+    final filesJson = prefs.getStringList('recent_files') ?? [];
+    return filesJson.map((json) => RecentFile.fromJson(json)).toList();
   }
 
-  static Future<void> setFontSize(double size) async {
-    await _settingsBox.put('font_size', size);
+  static Future<void> _saveToPrefs() async {
+    final prefs = await SharedPreferences.getInstance();
+    final filesJson = _recentFiles.map((f) => f.toJsonString()).toList();
+    await prefs.setStringList('recent_files', filesJson);
   }
 }

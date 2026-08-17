@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_strings.dart';
 import '../../core/utils/file_utils.dart';
 import '../../data/models/recent_file.dart';
 import '../../data/services/file_picker_service.dart';
+import '../../data/services/file_bytes_store.dart';
 import '../../data/services/storage_service.dart';
 import '../viewer/viewer_screen.dart';
 import '../settings/settings_screen.dart';
@@ -23,7 +22,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-    _loadFiles();
+    StorageService.init().then((_) => _loadFiles());
   }
 
   void _loadFiles() {
@@ -46,6 +45,18 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _openExistingFile(RecentFile file) async {
+    if (FileUtils.isWebRef(file.path)) {
+      final id = FileUtils.getWebId(file.path);
+      if (FileBytesStore.retrieve(id) == null) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('El archivo ya no esta en memoria. Abrelo de nuevo.')),
+          );
+        }
+        return;
+      }
+    }
+
     await StorageService.addOrUpdateFile(
       RecentFile(
         name: file.name,
@@ -71,7 +82,7 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text(AppStrings.deleteFile),
-        content: Text('¿Eliminar "${file.name}" del historial?'),
+        content: Text('Eliminar "${file.name}" del historial?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
@@ -87,7 +98,9 @@ class _HomeScreenState extends State<HomeScreen> {
     );
 
     if (confirmed == true) {
-      await FileUtils.deleteFile(file.path);
+      if (FileUtils.isWebRef(file.path)) {
+        FileBytesStore.remove(FileUtils.getWebId(file.path));
+      }
       await StorageService.removeFile(file.path);
       _loadFiles();
     }
@@ -110,9 +123,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: _recentFiles.isEmpty
-          ? _buildEmptyState()
-          : _buildFileList(),
+      body: _recentFiles.isEmpty ? _buildEmptyState() : _buildFileList(),
       floatingActionButton: FloatingActionButton(
         onPressed: _openFile,
         tooltip: AppStrings.openFile,
@@ -141,7 +152,10 @@ class _HomeScreenState extends State<HomeScreen> {
             AppStrings.noFilesMessage,
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+              color: Theme.of(context)
+                  .colorScheme
+                  .onSurface
+                  .withValues(alpha: 0.6),
             ),
           ),
         ],

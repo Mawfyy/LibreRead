@@ -1,16 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../../core/constants/app_strings.dart';
 import '../../app.dart';
 
-class SettingsScreen extends StatefulWidget {
+class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
-  @override
-  State<SettingsScreen> createState() => _SettingsScreenState();
-}
-
-class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final currentTheme = LectorDocumentosApp.currentTheme(context);
@@ -23,15 +17,27 @@ class _SettingsScreenState extends State<SettingsScreen> {
         children: [
           const SizedBox(height: 8),
           _buildSectionTitle(context, 'Apariencia'),
-          _buildThemeTile(context, 'Sistema', ThemeMode.system, currentTheme),
-          _buildThemeTile(context, 'Claro', ThemeMode.light, currentTheme),
-          _buildThemeTile(context, 'Oscuro', ThemeMode.dark, currentTheme),
+          RadioGroup<ThemeMode>(
+            groupValue: currentTheme,
+            onChanged: (value) {
+              if (value != null) {
+                LectorDocumentosApp.setTheme(context, value);
+              }
+            },
+            child: Column(
+              children: [
+                _buildThemeTile(context, 'Sistema', ThemeMode.system),
+                _buildThemeTile(context, 'Claro', ThemeMode.light),
+                _buildThemeTile(context, 'Oscuro', ThemeMode.dark),
+              ],
+            ),
+          ),
           const Divider(height: 32),
           _buildSectionTitle(context, 'Acerca de'),
           ListTile(
             leading: const Icon(Icons.info_outline),
             title: const Text('Lector de Documentos'),
-            subtitle: const Text('Versión 1.0.0'),
+            subtitle: const Text('Version 1.0.0'),
           ),
           ListTile(
             leading: const Icon(Icons.description_outlined),
@@ -56,21 +62,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 
-  Widget _buildThemeTile(
-    BuildContext context,
-    String label,
-    ThemeMode mode,
-    ThemeMode current,
-  ) {
+  Widget _buildThemeTile(BuildContext context, String label, ThemeMode mode) {
     return RadioListTile<ThemeMode>(
       title: Text(label),
       value: mode,
-      groupValue: current,
-      onChanged: (value) {
-        if (value != null) {
-          LectorDocumentosApp.setTheme(context, value);
-        }
-      },
     );
   }
 }

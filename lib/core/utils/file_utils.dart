@@ -1,35 +1,11 @@
-import 'dart:io';
-import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 
 class FileUtils {
   FileUtils._();
 
-  static Future<String> copyFileToAppStorage(File sourceFile, String fileName) async {
-    final appDir = await getApplicationDocumentsDirectory();
-    final destPath = p.join(appDir.path, 'documents', fileName);
+  static bool isWebRef(String path) => path.startsWith('web:');
 
-    final destDir = Directory(p.dirname(destPath));
-    if (!await destDir.exists()) {
-      await destDir.create(recursive: true);
-    }
-
-    await sourceFile.copy(destPath);
-    return destPath;
-  }
-
-  static Future<bool> deleteFile(String filePath) async {
-    try {
-      final file = File(filePath);
-      if (await file.exists()) {
-        await file.delete();
-        return true;
-      }
-      return false;
-    } catch (_) {
-      return false;
-    }
-  }
+  static String getWebId(String path) => path.substring(4);
 
   static String getFileExtension(String fileName) {
     return p.extension(fileName).toLowerCase();

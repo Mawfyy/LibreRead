@@ -13,7 +13,7 @@ class LectorDocumentosApp extends StatefulWidget {
 
   static ThemeMode currentTheme(BuildContext context) {
     final state = context.findAncestorStateOfType<_LectorDocumentosAppState>();
-    return state?.themeMode ?? ThemeMode.system;
+    return state?._themeMode ?? ThemeMode.system;
   }
 
   @override

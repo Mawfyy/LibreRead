@@ -1,38 +1,14 @@
-import 'package:hive_ce/hive.dart';
+import 'dart:convert';
 
-part 'recent_file.g.dart';
+enum FileType { pdf, docx, epub }
 
-@HiveType(typeId: 0)
-enum FileType {
-  @HiveField(0)
-  pdf,
-
-  @HiveField(1)
-  docx,
-
-  @HiveField(2)
-  epub,
-}
-
-@HiveType(typeId: 1)
-class RecentFile extends HiveObject {
-  @HiveField(0)
-  String name;
-
-  @HiveField(1)
-  String path;
-
-  @HiveField(2)
-  FileType type;
-
-  @HiveField(3)
-  DateTime lastOpened;
-
-  @HiveField(4)
-  int? lastPage;
-
-  @HiveField(5)
-  int fileSize;
+class RecentFile {
+  final String name;
+  final String path;
+  final FileType type;
+  final DateTime lastOpened;
+  final int? lastPage;
+  final int fileSize;
 
   RecentFile({
     required this.name,
@@ -52,5 +28,26 @@ class RecentFile extends HiveObject {
       case FileType.epub:
         return 'EPUB';
     }
+  }
+
+  String toJsonString() => jsonEncode({
+    'name': name,
+    'path': path,
+    'type': type.index,
+    'lastOpened': lastOpened.toIso8601String(),
+    'lastPage': lastPage,
+    'fileSize': fileSize,
+  });
+
+  factory RecentFile.fromJson(String jsonStr) {
+    final map = jsonDecode(jsonStr) as Map<String, dynamic>;
+    return RecentFile(
+      name: map['name'] as String,
+      path: map['path'] as String,
+      type: FileType.values[map['type'] as int],
+      lastOpened: DateTime.parse(map['lastOpened'] as String),
+      lastPage: map['lastPage'] as int?,
+      fileSize: (map['fileSize'] as num?)?.toInt() ?? 0,
+    );
   }
 }

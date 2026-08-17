@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:path/path.dart' as p;
-import '../../core/constants/app_colors.dart';
-import '../../core/utils/file_utils.dart';
-import '../../data/models/recent_file.dart';
+import '../../../core/constants/app_colors.dart';
+import '../../../core/utils/file_utils.dart';
+import '../../../data/models/recent_file.dart';
 
 class FileCard extends StatelessWidget {
   final RecentFile file;
@@ -102,14 +101,20 @@ class FileCard extends StatelessWidget {
                         Text(
                           FileUtils.formatFileSize(file.fileSize),
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSurface
+                                .withValues(alpha: 0.5),
                           ),
                         ),
                         const SizedBox(width: 8),
                         Text(
                           dateStr,
                           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onSurface
+                                .withValues(alpha: 0.5),
                           ),
                         ),
                       ],
@@ -120,7 +125,10 @@ class FileCard extends StatelessWidget {
               const SizedBox(width: 8),
               Icon(
                 Icons.chevron_right,
-                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
+                color: Theme.of(context)
+                    .colorScheme
+                    .onSurface
+                    .withValues(alpha: 0.3),
               ),
             ],
           ),
