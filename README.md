@@ -5,7 +5,9 @@ A modern EPUB, PDF & text reader built with Flutter.
 ## Screenshot
 
 <!-- Add your screenshot here: place a .png in screenshots/ and uncomment the line below -->
-<!-- ![LibreRead](screenshots/demo.png) -->
+<img width="720" height="1612" alt="image" src="https://github.com/user-attachments/assets/8cfe5ed5-a5be-4823-beae-be0a583ea474" />
+<img width="720" height="1612" alt="image" src="https://github.com/user-attachments/assets/39ba228e-ea53-419f-9eb7-04911527fb75" />
+
 
 ## Features
 
