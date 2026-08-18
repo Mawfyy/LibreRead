@@ -1,17 +1,53 @@
-# lector_documentos
+# LibreRead
 
-A new Flutter project.
+A modern EPUB, PDF & text reader built with Flutter.
+
+## Screenshot
+
+<!-- Add your screenshot here: place a .png in screenshots/ and uncomment the line below -->
+<!-- ![LibreRead](screenshots/demo.png) -->
+
+## Features
+
+- **EPUB Viewer** — Table of contents, bookmarks, full-text search, reading progress, navigation arrows
+- **PDF Viewer** — Pinch-to-zoom with smooth page rendering
+- **Plain Text Reader** — Scrollable, selectable text with copy/paste support
+- **Eye Care** — Blue light filter (adjustable intensity), 4 reading backgrounds (white, sepia, dark, high contrast), adjustable font size
+- **Cover Art** — Automatic EPUB cover extraction and caching
+- **Recent Files** — History of up to 50 opened files with thumbnails
+- **Themes** — Light, Dark, and System modes
+- **Cross-Platform** — Android, Linux, Web, Windows
+
+## Supported Formats
+
+| Format | Extension |
+| ------ | --------- |
+| EPUB   | `.epub`   |
+| PDF    | `.pdf`    |
+| Text   | `.txt`    |
 
 ## Getting Started
 
-This project is a starting point for a Flutter application.
+### Prerequisites
 
-A few resources to get you started if this is your first Flutter project:
+- Flutter >= 3.32.0
+- Dart SDK >= 3.8.0
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+### Run
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+```bash
+flutter pub get
+flutter run
+```
+
+## Building
+
+```bash
+flutter build apk --release
+```
+
+The APK will be at `build/app/outputs/flutter-apk/app-release.apk`.
+
+## License
+
+MIT
