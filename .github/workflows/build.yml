@@ -13,6 +13,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Java 17
         uses: actions/setup-java@v4
@@ -43,9 +45,30 @@ jobs:
           name: libre-read-apk
           path: build/app/outputs/flutter-apk/app-release.apk
 
+      - name: Create tag on main
+        if: github.ref_type == 'branch' && github.ref_name == 'main'
+        run: |
+          COUNT=$(git rev-list --count HEAD)
+          TAG="v1.0.$COUNT"
+          echo "TAG=$TAG" >> "$GITHUB_ENV"
+          if git tag -l | grep -q "^$TAG$"; then
+            echo "Tag $TAG already exists"
+          else
+            git config user.email "actions@github.com"
+            git config user.name "github-actions"
+            git tag -a "$TAG" -m "Release $TAG"
+            git push origin "$TAG"
+            echo "Created and pushed tag $TAG"
+          fi
+
       - name: Publish GitHub Release
-        if: startsWith(github.ref, 'refs/tags/v')
-        uses: softprops/action-gh-release@v2
-        with:
-          files: build/app/outputs/flutter-apk/app-release.apk
-          generate_release_notes: true
+        if: (github.ref_type == 'branch' && github.ref_name == 'main') || startsWith(github.ref, 'refs/tags/v')
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${TAG:-${GITHUB_REF_NAME}}"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "Release $TAG already exists, skipping"
+          else
+            gh release create "$TAG" build/app/outputs/flutter-apk/app-release.apk --target "$GITHUB_SHA" --generate-notes
+          fi
