@@ -53,6 +53,22 @@ jobs:
       - name: Test
         run: flutter test
 
+      - name: Set up release signing
+        if: secrets.ANDROID_KEYSTORE_B64 != ''
+        env:
+          ANDROID_KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_B64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: |
+          echo "$ANDROID_KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/libre_read_keystore.jks"
+          cat > android/key.properties <<EOF
+          storePassword=$ANDROID_KEYSTORE_PASSWORD
+          keyPassword=$ANDROID_KEY_PASSWORD
+          keyAlias=$ANDROID_KEY_ALIAS
+          storeFile=$RUNNER_TEMP/libre_read_keystore.jks
+          EOF
+
       - name: Build APK (release)
         run: flutter build apk --release
 
