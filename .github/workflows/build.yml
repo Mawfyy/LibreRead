@@ -27,6 +27,23 @@ jobs:
         with:
           channel: stable
 
+      - name: Stamp version
+        if: github.ref_type == 'branch' && github.ref_name == 'main'
+        run: |
+          COUNT=$(git rev-list --count HEAD)
+          TAG="v1.0.$COUNT"
+          echo "TAG=$TAG" >> "$GITHUB_ENV"
+          sed -i "s/^version:.*/version: 1.0.$COUNT+$COUNT/" pubspec.yaml
+          git config user.email "actions@github.com"
+          git config user.name "github-actions"
+          git add pubspec.yaml
+          if git diff --cached --quiet; then
+            echo "pubspec already at $TAG"
+          else
+            git commit -m "chore: stamp version $TAG"
+            git push origin main
+          fi
+
       - name: Install dependencies
         run: flutter pub get
 
@@ -48,8 +65,7 @@ jobs:
       - name: Create tag on main
         if: github.ref_type == 'branch' && github.ref_name == 'main'
         run: |
-          COUNT=$(git rev-list --count HEAD)
-          TAG="v1.0.$COUNT"
+          TAG="${TAG:-v1.0.$(git rev-list --count HEAD)}"
           echo "TAG=$TAG" >> "$GITHUB_ENV"
           if git tag -l | grep -q "^$TAG$"; then
             echo "Tag $TAG already exists"

@@ -5,8 +5,11 @@ import '../../data/models/recent_file.dart';
 import '../../data/services/file_picker_service.dart';
 import '../../data/services/file_bytes_store.dart';
 import '../../data/services/storage_service.dart';
+import '../../data/services/cover_cache_service.dart';
+import '../../data/services/update_service.dart';
 import '../viewer/viewer_screen.dart';
 import '../settings/settings_screen.dart';
+import '../settings/widgets/update_dialog.dart';
 import 'widgets/file_card.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -23,12 +26,56 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     StorageService.init().then((_) => _loadFiles());
+    _checkForUpdates();
+  }
+
+  void _checkForUpdates() async {
+    final update = await UpdateService.checkForUpdate();
+    if (!mounted || update == null) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('${AppStrings.updateAvailable} v${update.version}'),
+        action: SnackBarAction(
+          label: AppStrings.downloadAndInstall,
+          onPressed: () => UpdateDialogs.showUpdateDialog(context, update),
+        ),
+      ),
+    );
   }
 
   void _loadFiles() {
     setState(() {
       _recentFiles = StorageService.getRecentFiles();
     });
+    _extractMissingCovers();
+  }
+
+  void _extractMissingCovers() {
+    for (final file in _recentFiles) {
+      if (file.type == FileType.epub &&
+          file.coverPath == null &&
+          file.fileSize < 10 * 1024 * 1024 &&
+          !FileUtils.isWebRef(file.path)) {
+        _extractCover(file);
+      }
+    }
+  }
+
+  void _extractCover(RecentFile file) async {
+    final coverPath = await CoverCacheService.extractAndCacheCover(file.path);
+    if (coverPath != null && mounted) {
+      await StorageService.addOrUpdateFile(
+        RecentFile(
+          name: file.name,
+          path: file.path,
+          type: file.type,
+          lastOpened: file.lastOpened,
+          fileSize: file.fileSize,
+          coverPath: coverPath,
+        ),
+      );
+      if (mounted) _loadFiles();
+    }
   }
 
   Future<void> _openFile() async {
@@ -50,7 +97,7 @@ class _HomeScreenState extends State<HomeScreen> {
       if (FileBytesStore.retrieve(id) == null) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('El archivo ya no esta en memoria. Abrelo de nuevo.')),
+            const SnackBar(content: Text('File is no longer in memory. Open it again.')),
           );
         }
         return;
@@ -64,6 +111,7 @@ class _HomeScreenState extends State<HomeScreen> {
         type: file.type,
         lastOpened: DateTime.now(),
         fileSize: file.fileSize,
+        coverPath: file.coverPath,
       ),
     );
     _loadFiles();
@@ -82,16 +130,16 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text(AppStrings.deleteFile),
-        content: Text('Eliminar "${file.name}" del historial?'),
+        content: Text('Delete "${file.name}" from history?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancelar'),
+            child: const Text('Cancel'),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Eliminar'),
+            child: const Text('Delete'),
           ),
         ],
       ),
@@ -164,8 +212,14 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildFileList() {
-    return ListView.builder(
+    return GridView.builder(
       padding: const EdgeInsets.all(12),
+      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+        maxCrossAxisExtent: 220,
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+        childAspectRatio: 0.72,
+      ),
       itemCount: _recentFiles.length,
       itemBuilder: (context, index) {
         final file = _recentFiles[index];

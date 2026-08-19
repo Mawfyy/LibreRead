@@ -1,13 +1,32 @@
 import 'package:flutter/material.dart';
-import '../../core/constants/app_strings.dart';
-import '../../app.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
-class SettingsScreen extends StatelessWidget {
+import '../../core/constants/app_strings.dart';
+import '../../data/services/eye_care_service.dart';
+import '../../app.dart';
+import 'widgets/update_dialog.dart';
+
+class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
 
   @override
+  State<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen> {
+  String _appVersion = '';
+
+  @override
+  void initState() {
+    super.initState();
+    PackageInfo.fromPlatform().then((info) {
+      if (mounted) setState(() => _appVersion = info.version);
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final currentTheme = LectorDocumentosApp.currentTheme(context);
+    final currentTheme = LibreReadApp.currentTheme(context);
 
     return Scaffold(
       appBar: AppBar(
@@ -16,34 +35,151 @@ class SettingsScreen extends StatelessWidget {
       body: ListView(
         children: [
           const SizedBox(height: 8),
-          _buildSectionTitle(context, 'Apariencia'),
+          _buildSectionTitle(context, 'Appearance'),
           RadioGroup<ThemeMode>(
             groupValue: currentTheme,
             onChanged: (value) {
               if (value != null) {
-                LectorDocumentosApp.setTheme(context, value);
+                LibreReadApp.setTheme(context, value);
               }
             },
             child: Column(
               children: [
-                _buildThemeTile(context, 'Sistema', ThemeMode.system),
-                _buildThemeTile(context, 'Claro', ThemeMode.light),
-                _buildThemeTile(context, 'Oscuro', ThemeMode.dark),
+                _buildThemeTile(context, 'System', ThemeMode.system),
+                _buildThemeTile(context, 'Light', ThemeMode.light),
+                _buildThemeTile(context, 'Dark', ThemeMode.dark),
               ],
             ),
           ),
           const Divider(height: 32),
-          _buildSectionTitle(context, 'Acerca de'),
+          _buildSectionTitle(context, AppStrings.eyeCare),
+          SwitchListTile(
+            title: const Text(AppStrings.blueLightFilter),
+            value: EyeCareService.blueLightFilterEnabled,
+            onChanged: (value) async {
+              await EyeCareService.setBlueLightFilter(value);
+              setState(() {});
+            },
+          ),
+          if (EyeCareService.blueLightFilterEnabled)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  const Icon(Icons.wb_sunny_outlined, size: 20),
+                  Expanded(
+                    child: Slider(
+                      value: EyeCareService.blueLightIntensity,
+                      min: 0.1,
+                      max: 1.0,
+                      divisions: 9,
+                      label: '${(EyeCareService.blueLightIntensity * 100).round()}%',
+                      onChanged: (value) async {
+                        await EyeCareService.setBlueLightIntensity(value);
+                        setState(() {});
+                      },
+                    ),
+                  ),
+                  const Icon(Icons.wb_sunny, size: 20),
+                ],
+              ),
+            ),
+          _buildReadingBackgroundPicker(context),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              children: [
+                const Icon(Icons.text_fields, size: 20),
+                Expanded(
+                  child: Slider(
+                    value: EyeCareService.fontSize,
+                    min: 12.0,
+                    max: 28.0,
+                    divisions: 16,
+                    label: '${EyeCareService.fontSize.round()} px',
+                    onChanged: (value) async {
+                      await EyeCareService.setFontSize(value);
+                      setState(() {});
+                    },
+                  ),
+                ),
+                const Text('Aa', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              ],
+            ),
+          ),
+          const Divider(height: 32),
+          _buildSectionTitle(context, 'About'),
           ListTile(
             leading: const Icon(Icons.info_outline),
-            title: const Text('Lector de Documentos'),
-            subtitle: const Text('Version 1.0.0'),
+            title: const Text('LibreRead'),
+            subtitle: Text(_appVersion.isEmpty ? '...' : 'Version $_appVersion'),
+          ),
+          ListTile(
+            leading: const Icon(Icons.system_update_alt),
+            title: const Text(AppStrings.checkForUpdates),
+            subtitle: const Text('Latest version from GitHub'),
+            onTap: () => UpdateDialogs.checkAndPrompt(context),
           ),
           ListTile(
             leading: const Icon(Icons.description_outlined),
-            title: const Text('Formatos soportados'),
-            subtitle: const Text('PDF, Word (.docx), EPUB'),
+            title: const Text('Supported formats'),
+            subtitle: const Text('EPUB, Text'),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildReadingBackgroundPicker(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(AppStrings.readingBackground),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              _buildBgOption(Colors.white, const Color(0xFF212121), ReadingBackground.white, AppStrings.whiteBg),
+              const SizedBox(width: 12),
+              _buildBgOption(const Color(0xFFF5E6C8), const Color(0xFF5B4636), ReadingBackground.sepia, AppStrings.sepiaBg),
+              const SizedBox(width: 12),
+              _buildBgOption(const Color(0xFF1A1A1A), const Color(0xFFE0E0E0), ReadingBackground.dark, AppStrings.darkBg),
+              const SizedBox(width: 12),
+              _buildBgOption(Colors.black, Colors.white, ReadingBackground.highContrast, AppStrings.highContrastBg),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBgOption(Color bg, Color fg, ReadingBackground value, String label) {
+    final isSelected = EyeCareService.readingBackground == value;
+    return GestureDetector(
+      onTap: () async {
+        await EyeCareService.setReadingBackground(value);
+        setState(() {});
+      },
+      child: Column(
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: bg,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: isSelected ? Theme.of(context).colorScheme.primary : Colors.grey.shade300,
+                width: isSelected ? 3 : 1,
+              ),
+            ),
+            child: Center(
+              child: Text('Aa', style: TextStyle(color: fg, fontWeight: FontWeight.bold)),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(label, style: const TextStyle(fontSize: 12)),
         ],
       ),
     );
