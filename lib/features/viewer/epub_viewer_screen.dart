@@ -4,10 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_epub_viewer/flutter_epub_viewer.dart';
 import '../../data/models/recent_file.dart';
 import '../../data/models/epub_bookmark.dart';
+import '../../data/models/reader_settings.dart';
 import '../../data/services/epub_bookmark_service.dart';
-import '../../data/services/eye_care_service.dart';
+import '../../data/services/reader_settings_service.dart';
 import '../../data/services/reading_position_service.dart';
-import '../../data/services/reading_layout_service.dart';
 import '../../core/constants/app_strings.dart';
 
 class EpubViewerScreen extends StatefulWidget {
@@ -76,11 +76,12 @@ class _EpubViewerScreenState extends State<EpubViewerScreen>
 
   @override
   Widget build(BuildContext context) {
-    final bgColor = EyeCareService.backgroundColor;
-    final isHorizontal = ReadingLayoutService.isHorizontal;
+    final settings = ReaderSettingsService.settingsFor(ReaderFormat.epub);
+    final bgColor = settings.backgroundColor;
+    final isHorizontal = settings.layout == ReadingLayout.horizontal;
     final displaySettings = EpubDisplaySettings(
-      fontSize: EyeCareService.fontSize.round(),
-      theme: EyeCareService.epubTheme,
+      fontSize: settings.fontSize.round(),
+      theme: ReaderSettingsService.epubThemeFor(settings),
       flow: isHorizontal ? EpubFlow.paginated : EpubFlow.scrolled,
       snap: isHorizontal,
     );

@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../core/constants/app_strings.dart';
-import '../../data/services/eye_care_service.dart';
-import '../../data/services/reading_layout_service.dart';
+import '../../data/models/reader_settings.dart';
+import '../../data/services/reader_settings_service.dart';
 import '../../app.dart';
 import 'widgets/update_dialog.dart';
 
@@ -16,6 +16,7 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   String _appVersion = '';
+  ReaderFormat _selectedFormat = ReaderFormat.epub;
 
   @override
   void initState() {
@@ -53,13 +54,36 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ),
           const Divider(height: 32),
+          _buildSectionTitle(context, 'Reading settings'),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: SegmentedButton<ReaderFormat>(
+              segments: const [
+                ButtonSegment(
+                  value: ReaderFormat.epub,
+                  label: Text(AppStrings.epubFormat),
+                ),
+                ButtonSegment(
+                  value: ReaderFormat.pdf,
+                  label: Text(AppStrings.pdfFormat),
+                ),
+                ButtonSegment(
+                  value: ReaderFormat.txt,
+                  label: Text(AppStrings.txtFormat),
+                ),
+              ],
+              selected: {_selectedFormat},
+              onSelectionChanged: (selection) {
+                setState(() => _selectedFormat = selection.first);
+              },
+            ),
+          ),
           _buildSectionTitle(context, AppStrings.readingLayout),
           RadioGroup<ReadingLayout>(
-            groupValue: ReadingLayoutService.layout,
+            groupValue: _settings.layout,
             onChanged: (value) async {
               if (value != null) {
-                await ReadingLayoutService.setLayout(value);
-                setState(() {});
+                await _updateSettings(_settings.copyWith(layout: value));
               }
             },
             child: Column(
@@ -73,13 +97,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _buildSectionTitle(context, AppStrings.eyeCare),
           SwitchListTile(
             title: const Text(AppStrings.blueLightFilter),
-            value: EyeCareService.blueLightFilterEnabled,
+            value: _settings.blueLightEnabled,
             onChanged: (value) async {
-              await EyeCareService.setBlueLightFilter(value);
-              setState(() {});
+              await _updateSettings(_settings.copyWith(blueLightEnabled: value));
             },
           ),
-          if (EyeCareService.blueLightFilterEnabled)
+          if (_settings.blueLightEnabled)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
@@ -87,14 +110,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   const Icon(Icons.wb_sunny_outlined, size: 20),
                   Expanded(
                     child: Slider(
-                      value: EyeCareService.blueLightIntensity,
+                      value: _settings.blueLightIntensity,
                       min: 0.1,
                       max: 1.0,
                       divisions: 9,
-                      label: '${(EyeCareService.blueLightIntensity * 100).round()}%',
+                      label: '${(_settings.blueLightIntensity * 100).round()}%',
                       onChanged: (value) async {
-                        await EyeCareService.setBlueLightIntensity(value);
-                        setState(() {});
+                        await _updateSettings(
+                          _settings.copyWith(blueLightIntensity: value),
+                        );
                       },
                     ),
                   ),
@@ -102,7 +126,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ],
               ),
             ),
-          _buildReadingBackgroundPicker(context),
+          _buildReadingBackgroundPicker(),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
@@ -110,14 +134,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 const Icon(Icons.text_fields, size: 20),
                 Expanded(
                   child: Slider(
-                    value: EyeCareService.fontSize,
+                    value: _settings.fontSize,
                     min: 12.0,
                     max: 28.0,
                     divisions: 16,
-                    label: '${EyeCareService.fontSize.round()} px',
+                    label: '${_settings.fontSize.round()} px',
                     onChanged: (value) async {
-                      await EyeCareService.setFontSize(value);
-                      setState(() {});
+                      await _updateSettings(_settings.copyWith(fontSize: value));
                     },
                   ),
                 ),
@@ -141,14 +164,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ListTile(
             leading: const Icon(Icons.description_outlined),
             title: const Text('Supported formats'),
-            subtitle: const Text('EPUB, Text'),
+            subtitle: const Text('EPUB, PDF, Text'),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildReadingBackgroundPicker(BuildContext context) {
+  ReaderSettings get _settings =>
+      ReaderSettingsService.settingsFor(_selectedFormat);
+
+  Future<void> _updateSettings(ReaderSettings settings) async {
+    await ReaderSettingsService.update(_selectedFormat, settings);
+    if (mounted) setState(() {});
+  }
+
+  Widget _buildReadingBackgroundPicker() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: Column(
@@ -173,11 +204,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildBgOption(Color bg, Color fg, ReadingBackground value, String label) {
-    final isSelected = EyeCareService.readingBackground == value;
+    final isSelected = _settings.background == value;
     return GestureDetector(
       onTap: () async {
-        await EyeCareService.setReadingBackground(value);
-        setState(() {});
+        await _updateSettings(_settings.copyWith(background: value));
       },
       child: Column(
         children: [

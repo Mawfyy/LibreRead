@@ -3,7 +3,9 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:pdfrx/pdfrx.dart';
 import '../../data/models/recent_file.dart';
-import '../../data/services/reading_layout_service.dart';
+import '../../data/models/reader_settings.dart';
+import '../../data/services/reader_settings_service.dart';
+import 'widgets/eye_care_filter.dart';
 
 class PdfViewerScreen extends StatefulWidget {
   final RecentFile file;
@@ -17,6 +19,7 @@ class PdfViewerScreen extends StatefulWidget {
 class _PdfViewerScreenState extends State<PdfViewerScreen> {
   @override
   Widget build(BuildContext context) {
+    final settings = ReaderSettingsService.settingsFor(ReaderFormat.pdf);
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -24,27 +27,30 @@ class _PdfViewerScreenState extends State<PdfViewerScreen> {
           style: const TextStyle(fontSize: 14),
         ),
       ),
-      body: PdfViewer.file(
-        widget.file.path,
-        params: PdfViewerParams(
-          backgroundColor: Colors.white,
-          layoutPages: ReadingLayoutService.isHorizontal
-              ? _horizontalLayout
-              : null,
-          errorBannerBuilder: (context, error, stackTrace, documentRef) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Text(
-                  'Failed to load PDF',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.error,
+      body: EyeCareFilter(
+        settings: settings,
+        child: PdfViewer.file(
+          widget.file.path,
+          params: PdfViewerParams(
+            backgroundColor: settings.backgroundColor,
+            layoutPages: settings.layout == ReadingLayout.horizontal
+                ? _horizontalLayout
+                : null,
+            errorBannerBuilder: (context, error, stackTrace, documentRef) {
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Text(
+                    'Failed to load PDF',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.error,
+                    ),
                   ),
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         ),
       ),
     );

@@ -1,8 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import '../../data/models/recent_file.dart';
-import '../../data/services/eye_care_service.dart';
-import '../../data/services/reading_layout_service.dart';
+import '../../data/models/reader_settings.dart';
+import '../../data/services/reader_settings_service.dart';
 import 'widgets/eye_care_filter.dart';
 
 class TxtViewerScreen extends StatelessWidget {
@@ -16,8 +16,9 @@ class TxtViewerScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bgColor = EyeCareService.backgroundColor;
-    final fgColor = EyeCareService.textColor;
+    final settings = ReaderSettingsService.settingsFor(ReaderFormat.txt);
+    final bgColor = settings.backgroundColor;
+    final fgColor = settings.textColor;
 
     return Scaffold(
       backgroundColor: bgColor,
@@ -25,6 +26,7 @@ class TxtViewerScreen extends StatelessWidget {
         title: Text(file.name),
       ),
       body: EyeCareFilter(
+        settings: settings,
         child: FutureBuilder<String>(
           future: _loadContent(),
           builder: (context, snapshot) {
@@ -35,7 +37,7 @@ class TxtViewerScreen extends StatelessWidget {
               return Center(child: Text('Error: ${snapshot.error}'));
             }
             final content = snapshot.data ?? '';
-            final isHorizontal = ReadingLayoutService.isHorizontal;
+            final isHorizontal = settings.layout == ReadingLayout.horizontal;
             return SingleChildScrollView(
               scrollDirection: isHorizontal ? Axis.horizontal : Axis.vertical,
               child: SingleChildScrollView(
@@ -51,7 +53,7 @@ class TxtViewerScreen extends StatelessWidget {
                     child: SelectableText(
                       content,
                       style: TextStyle(
-                        fontSize: EyeCareService.fontSize,
+                        fontSize: settings.fontSize,
                         height: 1.6,
                         color: fgColor,
                       ),
