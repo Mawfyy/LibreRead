@@ -413,30 +413,6 @@ class _EpubViewerScreenState extends State<EpubViewerScreen>
       children: [
         viewer,
         if (_isLoading) const Center(child: CircularProgressIndicator()),
-        if (ReadingLayoutService.isHorizontal) ...[
-          Positioned(
-            left: 4,
-            top: 0,
-            bottom: 0,
-            child: Center(
-              child: _NavArrowButton(
-                icon: Icons.chevron_left,
-                onTap: () => _epubController.prev(),
-              ),
-            ),
-          ),
-          Positioned(
-            right: 4,
-            top: 0,
-            bottom: 0,
-            child: Center(
-              child: _NavArrowButton(
-                icon: Icons.chevron_right,
-                onTap: () => _epubController.next(),
-              ),
-            ),
-          ),
-        ],
       ],
     );
   }
@@ -458,28 +434,5 @@ class _EpubViewerScreenState extends State<EpubViewerScreen>
         return;
       }
     }
-  }
-}
-
-class _NavArrowButton extends StatelessWidget {
-  final IconData icon;
-  final VoidCallback onTap;
-
-  const _NavArrowButton({required this.icon, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 36,
-        height: 56,
-        decoration: BoxDecoration(
-          color: Colors.black26,
-          borderRadius: BorderRadius.circular(18),
-        ),
-        child: Icon(icon, color: Colors.white70, size: 28),
-      ),
-    );
   }
 }
