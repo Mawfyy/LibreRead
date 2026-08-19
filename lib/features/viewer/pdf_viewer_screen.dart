@@ -3,6 +3,7 @@ import 'package:pdfx/pdfx.dart';
 import '../../core/utils/file_utils.dart';
 import '../../data/models/recent_file.dart';
 import '../../data/services/file_bytes_store.dart';
+import '../../data/services/reading_layout_service.dart';
 
 class PdfViewerScreen extends StatefulWidget {
   final RecentFile file;
@@ -79,6 +80,9 @@ class _PdfViewerScreenState extends State<PdfViewerScreen> {
 
     return PdfViewPinch(
       controller: _controller,
+      scrollDirection: ReadingLayoutService.isHorizontal
+          ? Axis.horizontal
+          : Axis.vertical,
     );
   }
 }

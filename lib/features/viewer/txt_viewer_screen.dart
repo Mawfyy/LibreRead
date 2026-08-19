@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import '../../data/models/recent_file.dart';
 import '../../data/services/eye_care_service.dart';
+import '../../data/services/reading_layout_service.dart';
 import '../../core/utils/file_utils.dart';
 import '../../data/services/file_bytes_store.dart';
 import 'widgets/eye_care_filter.dart';
@@ -41,14 +42,28 @@ class TxtViewerScreen extends StatelessWidget {
               return Center(child: Text('Error: ${snapshot.error}'));
             }
             final content = snapshot.data ?? '';
+            final isHorizontal = ReadingLayoutService.isHorizontal;
             return SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: SelectableText(
-                content,
-                style: TextStyle(
-                  fontSize: EyeCareService.fontSize,
-                  height: 1.6,
-                  color: fgColor,
+              scrollDirection: isHorizontal ? Axis.horizontal : Axis.vertical,
+              child: SingleChildScrollView(
+                scrollDirection: isHorizontal ? Axis.vertical : Axis.horizontal,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minWidth: isHorizontal
+                        ? MediaQuery.of(context).size.width - 32
+                        : 0,
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: SelectableText(
+                      content,
+                      style: TextStyle(
+                        fontSize: EyeCareService.fontSize,
+                        height: 1.6,
+                        color: fgColor,
+                      ),
+                    ),
+                  ),
                 ),
               ),
             );

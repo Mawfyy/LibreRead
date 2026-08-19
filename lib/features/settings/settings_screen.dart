@@ -3,6 +3,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 
 import '../../core/constants/app_strings.dart';
 import '../../data/services/eye_care_service.dart';
+import '../../data/services/reading_layout_service.dart';
 import '../../app.dart';
 import 'widgets/update_dialog.dart';
 
@@ -48,6 +49,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 _buildThemeTile(context, 'System', ThemeMode.system),
                 _buildThemeTile(context, 'Light', ThemeMode.light),
                 _buildThemeTile(context, 'Dark', ThemeMode.dark),
+              ],
+            ),
+          ),
+          const Divider(height: 32),
+          _buildSectionTitle(context, AppStrings.readingLayout),
+          RadioGroup<ReadingLayout>(
+            groupValue: ReadingLayoutService.layout,
+            onChanged: (value) async {
+              if (value != null) {
+                await ReadingLayoutService.setLayout(value);
+                setState(() {});
+              }
+            },
+            child: Column(
+              children: [
+                _buildLayoutTile(context, AppStrings.verticalLayout, ReadingLayout.vertical),
+                _buildLayoutTile(context, AppStrings.horizontalLayout, ReadingLayout.horizontal),
               ],
             ),
           ),
@@ -202,6 +220,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
     return RadioListTile<ThemeMode>(
       title: Text(label),
       value: mode,
+    );
+  }
+
+  Widget _buildLayoutTile(BuildContext context, String label, ReadingLayout layout) {
+    return RadioListTile<ReadingLayout>(
+      title: Text(label),
+      value: layout,
     );
   }
 }

@@ -34,6 +34,9 @@ class AppStrings {
   static const String noResults = 'No results found';
   static const String chapters = 'Chapters';
   static const String progress = 'Progress';
+  static const String readingLayout = 'Reading layout';
+  static const String verticalLayout = 'Vertical';
+  static const String horizontalLayout = 'Horizontal';
   static const String checkForUpdates = 'Check for updates';
   static const String checkingForUpdates = 'Checking for updates...';
   static const String upToDate = 'You are up to date';

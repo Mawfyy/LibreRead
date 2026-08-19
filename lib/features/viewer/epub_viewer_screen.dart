@@ -8,6 +8,7 @@ import '../../data/services/file_bytes_store.dart';
 import '../../data/services/epub_bookmark_service.dart';
 import '../../data/services/eye_care_service.dart';
 import '../../data/services/reading_position_service.dart';
+import '../../data/services/reading_layout_service.dart';
 import '../../core/constants/app_strings.dart';
 import '../../core/utils/file_utils.dart';
 
@@ -78,10 +79,12 @@ class _EpubViewerScreenState extends State<EpubViewerScreen>
   @override
   Widget build(BuildContext context) {
     final bgColor = EyeCareService.backgroundColor;
+    final isHorizontal = ReadingLayoutService.isHorizontal;
     final displaySettings = EpubDisplaySettings(
       fontSize: EyeCareService.fontSize.round(),
       theme: EyeCareService.epubTheme,
-      snap: false,
+      flow: isHorizontal ? EpubFlow.paginated : EpubFlow.scrolled,
+      snap: isHorizontal,
     );
 
     return Scaffold(
@@ -410,28 +413,30 @@ class _EpubViewerScreenState extends State<EpubViewerScreen>
       children: [
         viewer,
         if (_isLoading) const Center(child: CircularProgressIndicator()),
-        Positioned(
-          left: 4,
-          top: 0,
-          bottom: 0,
-          child: Center(
-            child: _NavArrowButton(
-              icon: Icons.chevron_left,
-              onTap: () => _epubController.prev(),
+        if (ReadingLayoutService.isHorizontal) ...[
+          Positioned(
+            left: 4,
+            top: 0,
+            bottom: 0,
+            child: Center(
+              child: _NavArrowButton(
+                icon: Icons.chevron_left,
+                onTap: () => _epubController.prev(),
+              ),
             ),
           ),
-        ),
-        Positioned(
-          right: 4,
-          top: 0,
-          bottom: 0,
-          child: Center(
-            child: _NavArrowButton(
-              icon: Icons.chevron_right,
-              onTap: () => _epubController.next(),
+          Positioned(
+            right: 4,
+            top: 0,
+            bottom: 0,
+            child: Center(
+              child: _NavArrowButton(
+                icon: Icons.chevron_right,
+                onTap: () => _epubController.next(),
+              ),
             ),
           ),
-        ),
+        ],
       ],
     );
   }
