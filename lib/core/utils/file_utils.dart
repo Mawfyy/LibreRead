@@ -3,10 +3,6 @@ import 'package:path/path.dart' as p;
 class FileUtils {
   FileUtils._();
 
-  static bool isWebRef(String path) => path.startsWith('web:');
-
-  static String getWebId(String path) => path.substring(4);
-
   static String getFileExtension(String fileName) {
     return p.extension(fileName).toLowerCase();
   }

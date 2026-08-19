@@ -4,13 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_epub_viewer/flutter_epub_viewer.dart';
 import '../../data/models/recent_file.dart';
 import '../../data/models/epub_bookmark.dart';
-import '../../data/services/file_bytes_store.dart';
 import '../../data/services/epub_bookmark_service.dart';
 import '../../data/services/eye_care_service.dart';
 import '../../data/services/reading_position_service.dart';
 import '../../data/services/reading_layout_service.dart';
 import '../../core/constants/app_strings.dart';
-import '../../core/utils/file_utils.dart';
 
 class EpubViewerScreen extends StatefulWidget {
   final RecentFile file;
@@ -418,10 +416,6 @@ class _EpubViewerScreenState extends State<EpubViewerScreen>
   }
 
   Uint8List? _loadFileBytes() {
-    if (FileUtils.isWebRef(widget.file.path)) {
-      final id = FileUtils.getWebId(widget.file.path);
-      return FileBytesStore.retrieve(id);
-    }
     final file = File(widget.file.path);
     return file.readAsBytesSync();
   }

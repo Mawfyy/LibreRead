@@ -1,13 +1,11 @@
 import 'dart:io';
 import 'package:file_picker/file_picker.dart' hide FileType;
 import 'package:file_picker/file_picker.dart' as fp;
-import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import '../../core/utils/file_utils.dart';
 import '../models/recent_file.dart';
 import 'storage_service.dart';
-import 'file_bytes_store.dart';
 
 class FilePickerService {
   static Future<RecentFile?> pickAndOpenFile() async {
@@ -22,23 +20,13 @@ class FilePickerService {
     final fileType = _getFileType(platformFile.name);
     final fileSize = await platformFile.length();
 
-    String fileRef;
-
-    if (kIsWeb) {
-      final bytes = await platformFile.readAsBytes();
-      final id = '${DateTime.now().millisecondsSinceEpoch}_${platformFile.name}';
-      FileBytesStore.store(id, bytes);
-      fileRef = 'web:$id';
-    } else {
-      if (platformFile.path == null) return null;
-      final sourceFile = File(platformFile.path!);
-      final copiedPath = await _copyToAppStorage(sourceFile, platformFile.name);
-      fileRef = copiedPath;
-    }
+    if (platformFile.path == null) return null;
+    final sourceFile = File(platformFile.path!);
+    final copiedPath = await _copyToAppStorage(sourceFile, platformFile.name);
 
     final recentFile = RecentFile(
       name: platformFile.name,
-      path: fileRef,
+      path: copiedPath,
       type: fileType,
       lastOpened: DateTime.now(),
       fileSize: fileSize,

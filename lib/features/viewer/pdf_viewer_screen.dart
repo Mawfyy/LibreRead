@@ -1,8 +1,8 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
-import 'package:pdfx/pdfx.dart';
-import '../../core/utils/file_utils.dart';
+import 'package:pdfrx/pdfrx.dart';
 import '../../data/models/recent_file.dart';
-import '../../data/services/file_bytes_store.dart';
 import '../../data/services/reading_layout_service.dart';
 
 class PdfViewerScreen extends StatefulWidget {
@@ -15,40 +15,6 @@ class PdfViewerScreen extends StatefulWidget {
 }
 
 class _PdfViewerScreenState extends State<PdfViewerScreen> {
-  late final PdfControllerPinch _controller;
-  String? _error;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = PdfControllerPinch(
-      document: _openDocument(),
-    );
-    _controller.loadingState.addListener(() {
-      if (_controller.loadingState.value == PdfLoadingState.error && mounted) {
-        setState(() {
-          _error = 'Failed to load PDF';
-        });
-      }
-    });
-  }
-
-  Future<PdfDocument> _openDocument() async {
-    if (FileUtils.isWebRef(widget.file.path)) {
-      final id = FileUtils.getWebId(widget.file.path);
-      final bytes = FileBytesStore.retrieve(id);
-      if (bytes == null) throw Exception('File not in memory');
-      return PdfDocument.openData(bytes);
-    }
-    return PdfDocument.openFile(widget.file.path);
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -58,31 +24,56 @@ class _PdfViewerScreenState extends State<PdfViewerScreen> {
           style: const TextStyle(fontSize: 14),
         ),
       ),
-      body: _buildBody(),
+      body: PdfViewer.file(
+        widget.file.path,
+        params: PdfViewerParams(
+          backgroundColor: Colors.white,
+          layoutPages: ReadingLayoutService.isHorizontal
+              ? _horizontalLayout
+              : null,
+          errorBannerBuilder: (context, error, stackTrace, documentRef) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Text(
+                  'Failed to load PDF',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.error,
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+      ),
     );
   }
 
-  Widget _buildBody() {
-    if (_error != null) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Text(
-            _error!,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: Theme.of(context).colorScheme.error,
-            ),
-          ),
+  PdfPageLayout _horizontalLayout(
+    List<PdfPage> pages,
+    PdfViewerParams params,
+  ) {
+    final height = pages.fold(
+      0.0,
+      (prev, page) => math.max(prev, page.height),
+    ) + params.margin * 2;
+    final pageLayouts = <Rect>[];
+    var x = params.margin;
+    for (final page in pages) {
+      pageLayouts.add(
+        Rect.fromLTWH(
+          x,
+          (height - page.height) / 2,
+          page.width,
+          page.height,
         ),
       );
+      x += page.width + params.margin;
     }
-
-    return PdfViewPinch(
-      controller: _controller,
-      scrollDirection: ReadingLayoutService.isHorizontal
-          ? Axis.horizontal
-          : Axis.vertical,
+    return PdfPageLayout(
+      pageLayouts: pageLayouts,
+      documentSize: Size(x, height),
     );
   }
 }

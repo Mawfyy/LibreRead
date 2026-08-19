@@ -3,8 +3,6 @@ import 'package:flutter/material.dart';
 import '../../data/models/recent_file.dart';
 import '../../data/services/eye_care_service.dart';
 import '../../data/services/reading_layout_service.dart';
-import '../../core/utils/file_utils.dart';
-import '../../data/services/file_bytes_store.dart';
 import 'widgets/eye_care_filter.dart';
 
 class TxtViewerScreen extends StatelessWidget {
@@ -13,11 +11,6 @@ class TxtViewerScreen extends StatelessWidget {
   const TxtViewerScreen({super.key, required this.file});
 
   Future<String> _loadContent() async {
-    if (FileUtils.isWebRef(file.path)) {
-      final bytes = FileBytesStore.retrieve(FileUtils.getWebId(file.path));
-      if (bytes != null) return String.fromCharCodes(bytes);
-      return '';
-    }
     return File(file.path).readAsString();
   }
 

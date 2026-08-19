@@ -18,7 +18,7 @@ A modern EPUB, PDF & text reader built with Flutter.
 - **Cover Art** — Automatic EPUB cover extraction and caching
 - **Recent Files** — History of up to 50 opened files with thumbnails
 - **Themes** — Light, Dark, and System modes
-- **Cross-Platform** — Android, Linux, Web, Windows
+- **Android Only** — Targets Android
 
 ## Supported Formats
 

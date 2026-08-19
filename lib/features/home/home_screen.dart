@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../core/constants/app_strings.dart';
-import '../../core/utils/file_utils.dart';
 import '../../data/models/recent_file.dart';
 import '../../data/services/file_picker_service.dart';
-import '../../data/services/file_bytes_store.dart';
 import '../../data/services/storage_service.dart';
 import '../../data/services/cover_cache_service.dart';
 import '../../data/services/update_service.dart';
@@ -54,8 +52,7 @@ class _HomeScreenState extends State<HomeScreen> {
     for (final file in _recentFiles) {
       if (file.type == FileType.epub &&
           file.coverPath == null &&
-          file.fileSize < 10 * 1024 * 1024 &&
-          !FileUtils.isWebRef(file.path)) {
+          file.fileSize < 10 * 1024 * 1024) {
         _extractCover(file);
       }
     }
@@ -92,18 +89,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _openExistingFile(RecentFile file) async {
-    if (FileUtils.isWebRef(file.path)) {
-      final id = FileUtils.getWebId(file.path);
-      if (FileBytesStore.retrieve(id) == null) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('File is no longer in memory. Open it again.')),
-          );
-        }
-        return;
-      }
-    }
-
     await StorageService.addOrUpdateFile(
       RecentFile(
         name: file.name,
@@ -146,9 +131,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
 
     if (confirmed == true) {
-      if (FileUtils.isWebRef(file.path)) {
-        FileBytesStore.remove(FileUtils.getWebId(file.path));
-      }
       await StorageService.removeFile(file.path);
       _loadFiles();
     }

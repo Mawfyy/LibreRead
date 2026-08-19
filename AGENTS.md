@@ -4,15 +4,25 @@ Instructions for AI assistants working on LibreRead.
 
 ## Project Overview
 
-LibreRead is a cross-platform Flutter document reader app (EPUB, PDF, TXT). Written in Dart, targets Android, Linux, Web, and Windows.
+LibreRead is an Android-only Flutter document reader app (EPUB, PDF, TXT). Written in Dart, targets Android.
 
 ## Build & Run
 
 ```bash
 flutter pub get          # Install dependencies
 flutter run              # Run in debug mode
-flutter build apk --release  # Build Android APK
+flutter build apk --release  # Build Android APK (signed with release keystore)
 ```
+
+## Android Release Signing
+
+Release builds are signed with a persistent keystore at `android/app/libre_read_keystore.jks` (alias `libre_read`), configured via `android/key.properties`. Both files are gitignored — never commit them.
+
+- `android/app/build.gradle` reads `key.properties` and signs `release` with the release keystore; if `key.properties` is missing it falls back to the debug key.
+- CI (`/.github/workflows/build.yml`) decodes the keystore from the `ANDROID_KEYSTORE_B64` secret into `$RUNNER_TEMP` and writes `key.properties` there.
+- Required GitHub secrets: `ANDROID_KEYSTORE_B64` (base64 of the `.jks`), `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_PASSWORD`, `ANDROID_KEY_ALIAS`.
+- PKCS12 keystores do not support a separate key password, so `keyPassword` must equal `storePassword` in `key.properties`.
+- Do NOT regenerate the keystore: changing the signing key makes existing installs unable to update (signature mismatch), requiring a full uninstall/reinstall.
 
 ## Code Analysis & Linting
 
@@ -43,7 +53,6 @@ lib/
 
 - **State management:** `StatefulWidget` + `setState()` (no Provider/Bloc/Riverpod)
 - **Persistence:** `shared_preferences` only (no database)
-- **Web support:** Special `FileBytesStore` in-memory path for web compatibility
 
 ## Code Conventions
 
