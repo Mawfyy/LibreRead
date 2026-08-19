@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../data/models/recent_file.dart';
-import 'pdf_viewer_screen.dart';
-import 'docx_viewer_screen.dart';
 import 'epub_viewer_screen.dart';
+import 'txt_viewer_screen.dart';
+import 'pdf_viewer_screen.dart';
 
 class ViewerScreen extends StatelessWidget {
   final RecentFile file;
@@ -12,12 +12,12 @@ class ViewerScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     switch (file.type) {
-      case FileType.pdf:
-        return PdfViewerScreen(file: file);
-      case FileType.docx:
-        return DocxViewerScreen(file: file);
       case FileType.epub:
         return EpubViewerScreen(file: file);
+      case FileType.txt:
+        return TxtViewerScreen(file: file);
+      case FileType.pdf:
+        return PdfViewerScreen(file: file);
     }
   }
 }

@@ -14,21 +14,20 @@ class FileUtils {
   static String getFileType(String fileName) {
     final ext = getFileExtension(fileName);
     switch (ext) {
-      case '.pdf':
-        return 'PDF';
-      case '.docx':
-      case '.doc':
-        return 'Word';
       case '.epub':
         return 'EPUB';
+      case '.txt':
+        return 'Text';
+      case '.pdf':
+        return 'PDF';
       default:
-        return 'Desconocido';
+        return 'Unknown';
     }
   }
 
   static bool isSupportedFile(String fileName) {
     final ext = getFileExtension(fileName);
-    return ['.pdf', '.docx', '.doc', '.epub'].contains(ext);
+    return ['.epub', '.txt', '.pdf'].contains(ext);
   }
 
   static String formatFileSize(int bytes) {

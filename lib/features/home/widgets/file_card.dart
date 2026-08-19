@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/utils/file_utils.dart';
 import '../../../data/models/recent_file.dart';
+import 'file_thumbnail.dart';
 
 class FileCard extends StatelessWidget {
   final RecentFile file;
@@ -18,70 +19,56 @@ class FileCard extends StatelessWidget {
 
   Color _getTypeColor() {
     switch (file.type) {
-      case FileType.pdf:
-        return AppColors.pdfColor;
-      case FileType.docx:
-        return AppColors.docxColor;
       case FileType.epub:
         return AppColors.epubColor;
-    }
-  }
-
-  IconData _getTypeIcon() {
-    switch (file.type) {
+      case FileType.txt:
+        return AppColors.txtColor;
       case FileType.pdf:
-        return Icons.picture_as_pdf;
-      case FileType.docx:
-        return Icons.description;
-      case FileType.epub:
-        return Icons.menu_book;
+        return AppColors.pdfColor;
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final typeColor = _getTypeColor();
-    final dateFormat = DateFormat('dd MMM yyyy, HH:mm');
+    final dateFormat = DateFormat('dd MMM yyyy');
     final dateStr = dateFormat.format(file.lastOpened);
 
     return Card(
-      margin: const EdgeInsets.only(bottom: 8),
+      clipBehavior: Clip.antiAlias,
+      margin: EdgeInsets.zero,
       child: InkWell(
         onTap: onTap,
         onLongPress: onLongPress,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Row(
-            children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: typeColor.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(_getTypeIcon(), color: typeColor, size: 28),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              flex: 6,
+              child: FileThumbnail(file: file),
+            ),
+            Expanded(
+              flex: 4,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
                       file.name,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                         fontWeight: FontWeight.w600,
+                        fontSize: 13,
                       ),
                     ),
-                    const SizedBox(height: 4),
                     Row(
                       children: [
                         Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
+                            horizontal: 5,
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
@@ -91,47 +78,43 @@ class FileCard extends StatelessWidget {
                           child: Text(
                             file.typeLabel,
                             style: TextStyle(
-                              fontSize: 11,
+                              fontSize: 10,
                               color: typeColor,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
                         ),
-                        const SizedBox(width: 8),
-                        Text(
-                          FileUtils.formatFileSize(file.fileSize),
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onSurface
-                                .withValues(alpha: 0.5),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          dateStr,
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onSurface
-                                .withValues(alpha: 0.5),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            FileUtils.formatFileSize(file.fileSize),
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              fontSize: 10,
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurface
+                                  .withValues(alpha: 0.5),
+                            ),
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],
                     ),
+                    Text(
+                      dateStr,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        fontSize: 10,
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onSurface
+                            .withValues(alpha: 0.4),
+                      ),
+                    ),
                   ],
                 ),
               ),
-              const SizedBox(width: 8),
-              Icon(
-                Icons.chevron_right,
-                color: Theme.of(context)
-                    .colorScheme
-                    .onSurface
-                    .withValues(alpha: 0.3),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

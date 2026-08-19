@@ -13,7 +13,7 @@ class FilePickerService {
   static Future<RecentFile?> pickAndOpenFile() async {
     final result = await FilePicker.pickFiles(
       type: fp.FileType.custom,
-      allowedExtensions: ['pdf', 'docx', 'doc', 'epub'],
+      allowedExtensions: ['epub', 'txt', 'pdf'],
     );
 
     if (result.isEmpty) return null;
@@ -62,15 +62,14 @@ class FilePickerService {
   static FileType _getFileType(String fileName) {
     final ext = FileUtils.getFileExtension(fileName);
     switch (ext) {
-      case '.pdf':
-        return FileType.pdf;
-      case '.docx':
-      case '.doc':
-        return FileType.docx;
       case '.epub':
         return FileType.epub;
-      default:
+      case '.txt':
+        return FileType.txt;
+      case '.pdf':
         return FileType.pdf;
+      default:
+        return FileType.epub;
     }
   }
 }

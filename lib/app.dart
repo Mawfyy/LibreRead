@@ -3,24 +3,24 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'core/theme/app_theme.dart';
 import 'features/home/home_screen.dart';
 
-class LectorDocumentosApp extends StatefulWidget {
-  const LectorDocumentosApp({super.key});
+class LibreReadApp extends StatefulWidget {
+  const LibreReadApp({super.key});
 
   static void setTheme(BuildContext context, ThemeMode mode) {
-    final state = context.findAncestorStateOfType<_LectorDocumentosAppState>();
+    final state = context.findAncestorStateOfType<_LibreReadAppState>();
     state?.setTheme(mode);
   }
 
   static ThemeMode currentTheme(BuildContext context) {
-    final state = context.findAncestorStateOfType<_LectorDocumentosAppState>();
+    final state = context.findAncestorStateOfType<_LibreReadAppState>();
     return state?._themeMode ?? ThemeMode.system;
   }
 
   @override
-  State<LectorDocumentosApp> createState() => _LectorDocumentosAppState();
+  State<LibreReadApp> createState() => _LibreReadAppState();
 }
 
-class _LectorDocumentosAppState extends State<LectorDocumentosApp> {
+class _LibreReadAppState extends State<LibreReadApp> {
   ThemeMode _themeMode = ThemeMode.system;
 
   @override
@@ -46,7 +46,7 @@ class _LectorDocumentosAppState extends State<LectorDocumentosApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Lector de Documentos',
+      title: 'LibreRead',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,

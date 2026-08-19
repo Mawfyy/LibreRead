@@ -11,9 +11,9 @@ class AppColors {
   static const Color textPrimary = Color(0xFF212121);
   static const Color textSecondary = Color(0xFF757575);
 
-  static const Color pdfColor = Color(0xFFE53935);
-  static const Color docxColor = Color(0xFF1E88E5);
   static const Color epubColor = Color(0xFF43A047);
+  static const Color txtColor = Color(0xFF8E24AA);
+  static const Color pdfColor = Color(0xFFE53935);
 
   static const Color darkBackground = Color(0xFF121212);
   static const Color darkSurface = Color(0xFF1E1E1E);

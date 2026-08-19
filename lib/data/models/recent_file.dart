@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-enum FileType { pdf, docx, epub }
+enum FileType { epub, txt, pdf }
 
 class RecentFile {
   final String name;
@@ -9,6 +9,7 @@ class RecentFile {
   final DateTime lastOpened;
   final int? lastPage;
   final int fileSize;
+  final String? coverPath;
 
   RecentFile({
     required this.name,
@@ -17,16 +18,17 @@ class RecentFile {
     required this.lastOpened,
     this.lastPage,
     this.fileSize = 0,
+    this.coverPath,
   });
 
   String get typeLabel {
     switch (type) {
-      case FileType.pdf:
-        return 'PDF';
-      case FileType.docx:
-        return 'Word';
       case FileType.epub:
         return 'EPUB';
+      case FileType.txt:
+        return 'Text';
+      case FileType.pdf:
+        return 'PDF';
     }
   }
 
@@ -37,6 +39,7 @@ class RecentFile {
     'lastOpened': lastOpened.toIso8601String(),
     'lastPage': lastPage,
     'fileSize': fileSize,
+    'coverPath': coverPath,
   });
 
   factory RecentFile.fromJson(String jsonStr) {
@@ -48,6 +51,7 @@ class RecentFile {
       lastOpened: DateTime.parse(map['lastOpened'] as String),
       lastPage: map['lastPage'] as int?,
       fileSize: (map['fileSize'] as num?)?.toInt() ?? 0,
+      coverPath: map['coverPath'] as String?,
     );
   }
 }
