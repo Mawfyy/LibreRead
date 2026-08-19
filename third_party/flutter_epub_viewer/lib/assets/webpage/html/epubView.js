@@ -867,32 +867,15 @@ function loadBook(data, opts) {
 
     var percent = location.start.percentage;
 
-    // Convert CFIs to XPath
-    Promise.all([
-      cfiToXPath(location.start.cfi),
-      cfiToXPath(location.end.cfi)
-    ]).then(function (xpaths) {
-      var locationData = {
-        startCfi: location.start.cfi,
-        endCfi: location.end.cfi,
-        startXpath: xpaths[0],
-        endXpath: xpaths[1],
-        progress: percent
-      }
-      var args = [locationData]
-      window.flutter_inappwebview.callHandler('relocated', ...args);
-    }).catch(function (e) {
-      // If XPath conversion fails, still send CFI
-      var locationData = {
-        startCfi: location.start.cfi,
-        endCfi: location.end.cfi,
-        startXpath: null,
-        endXpath: null,
-        progress: percent
-      }
-      var args = [locationData]
-      window.flutter_inappwebview.callHandler('relocated', ...args);
-    });
+    var locationData = {
+      startCfi: location.start.cfi,
+      endCfi: location.end.cfi,
+      startXpath: null,
+      endXpath: null,
+      progress: percent
+    }
+    var args = [locationData]
+    window.flutter_inappwebview.callHandler('relocated', ...args);
   });
 
   rendition.on('displayError', function (e) {
@@ -1967,28 +1950,13 @@ function getCurrentLocation() {
   var percent = rendition.location.start.percentage;
   percent = parseFloat(percent);
 
-  // Convert CFIs to XPath
-  return Promise.all([
-    cfiToXPath(rendition.location.start.cfi),
-    cfiToXPath(rendition.location.end.cfi)
-  ]).then(function (xpaths) {
-    return {
-      startCfi: rendition.location.start.cfi,
-      endCfi: rendition.location.end.cfi,
-      startXpath: xpaths[0],
-      endXpath: xpaths[1],
-      progress: percent
-    };
-  }).catch(function (e) {
-    // If XPath conversion fails, still return CFI
-    return {
-      startCfi: rendition.location.start.cfi,
-      endCfi: rendition.location.end.cfi,
-      startXpath: null,
-      endXpath: null,
-      progress: percent
-    };
-  });
+  return {
+    startCfi: rendition.location.start.cfi,
+    endCfi: rendition.location.end.cfi,
+    startXpath: null,
+    endXpath: null,
+    progress: percent
+  };
 }
 
 ///parsing chapters and subitems recursively

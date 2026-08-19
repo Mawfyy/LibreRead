@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
@@ -27,6 +28,9 @@ class _EpubViewerScreenState extends State<EpubViewerScreen>
   double _progress = 0.0;
   String _currentCfi = '';
   String _currentChapterTitle = '';
+  String _currentChapterId = '';
+  int _lastChapterIndex = 0;
+  Timer? _saveTimer;
   bool _isLoading = true;
   String? _initialCfi;
 
@@ -43,6 +47,7 @@ class _EpubViewerScreenState extends State<EpubViewerScreen>
 
   @override
   void dispose() {
+    _saveTimer?.cancel();
     _saveCurrentPosition();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
@@ -72,6 +77,14 @@ class _EpubViewerScreenState extends State<EpubViewerScreen>
         _progress,
       );
     }
+  }
+
+  void _schedulePositionSave() {
+    _saveTimer?.cancel();
+    _saveTimer = Timer(
+      const Duration(milliseconds: 600),
+      _saveCurrentPosition,
+    );
   }
 
   @override
@@ -142,7 +155,7 @@ class _EpubViewerScreenState extends State<EpubViewerScreen>
                       itemCount: _chapters.length,
                       itemBuilder: (context, index) {
                         final chapter = _chapters[index];
-                        final isCurrent = chapter.href == _currentChapterTitle;
+                        final isCurrent = chapter.id == _currentChapterId;
                         return ListTile(
                           title: Text(
                             chapter.title,
@@ -399,12 +412,13 @@ class _EpubViewerScreenState extends State<EpubViewerScreen>
         });
       },
       onRelocated: (location) {
-        setState(() {
-          _progress = location.progress;
-          _currentCfi = location.startCfi;
-        });
+        _currentCfi = location.startCfi;
         _updateCurrentChapter();
-        _saveCurrentPosition();
+        _schedulePositionSave();
+        final progress = location.progress;
+        if (progress != _progress) {
+          setState(() => _progress = progress);
+        }
       },
     );
 
@@ -423,9 +437,20 @@ class _EpubViewerScreenState extends State<EpubViewerScreen>
 
   void _updateCurrentChapter() {
     if (_chapters.isEmpty) return;
-    for (final chapter in _chapters) {
-      if (_currentCfi.contains(chapter.href) || chapter.href.contains(_currentCfi)) {
-        setState(() => _currentChapterTitle = chapter.title);
+    final len = _chapters.length;
+    for (var offset = 0; offset < len; offset++) {
+      final index = (_lastChapterIndex + offset) % len;
+      final chapter = _chapters[index];
+      if (_currentCfi.contains('[${chapter.id}]') ||
+          _currentCfi.contains(chapter.href) ||
+          chapter.href.contains(_currentCfi)) {
+        _lastChapterIndex = index;
+        if (_currentChapterId != chapter.id) {
+          setState(() {
+            _currentChapterId = chapter.id;
+            _currentChapterTitle = chapter.title;
+          });
+        }
         return;
       }
     }
