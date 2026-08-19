@@ -5,8 +5,8 @@ plugins {
 }
 
 android {
-    namespace "com.lector.documentos"
-    compileSdk 35
+    namespace "com.libre.read"
+    compileSdk 36
     ndkVersion flutter.ndkVersion
 
     compileOptions {
@@ -19,8 +19,8 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.lector.documentos"
-        minSdk 23
+        applicationId "com.libre.read"
+        minSdkVersion flutter.minSdkVersion
         targetSdk 35
         versionCode 1
         versionName "1.0.0"

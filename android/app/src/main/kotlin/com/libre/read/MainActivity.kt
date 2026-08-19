@@ -1,4 +1,4 @@
-package com.lector.documentos
+package com.libre.read
 
 import io.flutter.embedding.android.FlutterActivity
 
