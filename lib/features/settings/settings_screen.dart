@@ -55,6 +55,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           const Divider(height: 32),
           _buildSectionTitle(context, 'Reading settings'),
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton.icon(
+              onPressed: () async {
+                await ReaderSettingsService.reset(_selectedFormat);
+                if (mounted) setState(() {});
+              },
+              icon: const Icon(Icons.restart_alt, size: 18),
+              label: const Text(AppStrings.resetToRecommended),
+            ),
+          ),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: SegmentedButton<ReaderFormat>(
@@ -78,7 +89,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
               },
             ),
           ),
-          _buildSectionTitle(context, AppStrings.readingLayout),
+          _buildSectionTitle(
+            context,
+            '${AppStrings.readingLayout} (${_formatLabel()})',
+          ),
           RadioGroup<ReadingLayout>(
             groupValue: _settings.layout,
             onChanged: (value) async {
@@ -94,7 +108,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ),
           const Divider(height: 32),
-          _buildSectionTitle(context, AppStrings.eyeCare),
+          _buildSectionTitle(context, '${AppStrings.eyeCare} (${_formatLabel()})'),
           SwitchListTile(
             title: const Text(AppStrings.blueLightFilter),
             value: _settings.blueLightEnabled,
@@ -127,27 +141,28 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ),
             ),
           _buildReadingBackgroundPicker(),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Row(
-              children: [
-                const Icon(Icons.text_fields, size: 20),
-                Expanded(
-                  child: Slider(
-                    value: _settings.fontSize,
-                    min: 12.0,
-                    max: 28.0,
-                    divisions: 16,
-                    label: '${_settings.fontSize.round()} px',
-                    onChanged: (value) async {
-                      await _updateSettings(_settings.copyWith(fontSize: value));
-                    },
+          if (_selectedFormat != ReaderFormat.pdf)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  const Icon(Icons.text_fields, size: 20),
+                  Expanded(
+                    child: Slider(
+                      value: _fontSize,
+                      min: _fontMin,
+                      max: _fontMax,
+                      divisions: _fontDivisions,
+                      label: '${_fontSize.round()} px',
+                      onChanged: (value) async {
+                        await _updateSettings(_withFontSize(value));
+                      },
+                    ),
                   ),
-                ),
-                const Text('Aa', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-              ],
+                  const Text('Aa', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                ],
+              ),
             ),
-          ),
           const Divider(height: 32),
           _buildSectionTitle(context, 'About'),
           ListTile(
@@ -174,6 +189,72 @@ class _SettingsScreenState extends State<SettingsScreen> {
   ReaderSettings get _settings =>
       ReaderSettingsService.settingsFor(_selectedFormat);
 
+  double get _fontSize {
+    switch (_selectedFormat) {
+      case ReaderFormat.epub:
+        return _settings.epub.fontSize;
+      case ReaderFormat.txt:
+        return _settings.txt.fontSize;
+      case ReaderFormat.pdf:
+        return 0;
+    }
+  }
+
+  double get _fontMin {
+    switch (_selectedFormat) {
+      case ReaderFormat.epub:
+        return EpubSettings.minFontSize;
+      case ReaderFormat.txt:
+        return TxtSettings.minFontSize;
+      case ReaderFormat.pdf:
+        return 0;
+    }
+  }
+
+  double get _fontMax {
+    switch (_selectedFormat) {
+      case ReaderFormat.epub:
+        return EpubSettings.maxFontSize;
+      case ReaderFormat.txt:
+        return TxtSettings.maxFontSize;
+      case ReaderFormat.pdf:
+        return 0;
+    }
+  }
+
+  int get _fontDivisions {
+    switch (_selectedFormat) {
+      case ReaderFormat.epub:
+        return EpubSettings.fontSizeDivisions;
+      case ReaderFormat.txt:
+        return TxtSettings.fontSizeDivisions;
+      case ReaderFormat.pdf:
+        return 0;
+    }
+  }
+
+  ReaderSettings _withFontSize(double value) {
+    switch (_selectedFormat) {
+      case ReaderFormat.epub:
+        return _settings.copyWith(epub: _settings.epub.copyWith(fontSize: value));
+      case ReaderFormat.txt:
+        return _settings.copyWith(txt: _settings.txt.copyWith(fontSize: value));
+      case ReaderFormat.pdf:
+        return _settings;
+    }
+  }
+
+  String _formatLabel() {
+    switch (_selectedFormat) {
+      case ReaderFormat.epub:
+        return AppStrings.epubFormat;
+      case ReaderFormat.pdf:
+        return AppStrings.pdfFormat;
+      case ReaderFormat.txt:
+        return AppStrings.txtFormat;
+    }
+  }
+
   Future<void> _updateSettings(ReaderSettings settings) async {
     await ReaderSettingsService.update(_selectedFormat, settings);
     if (mounted) setState(() {});
@@ -185,7 +266,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(AppStrings.readingBackground),
+          Text('${AppStrings.readingBackground} (${_formatLabel()})'),
           const SizedBox(height: 8),
           Row(
             children: [

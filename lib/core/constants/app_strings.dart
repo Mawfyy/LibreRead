@@ -37,6 +37,7 @@ class AppStrings {
   static const String readingLayout = 'Reading layout';
   static const String verticalLayout = 'Vertical';
   static const String horizontalLayout = 'Horizontal';
+  static const String resetToRecommended = 'Reset to recommended';
   static const String epubFormat = 'EPUB';
   static const String pdfFormat = 'PDF';
   static const String txtFormat = 'Text';

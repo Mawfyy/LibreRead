@@ -53,8 +53,8 @@ class TxtViewerScreen extends StatelessWidget {
                     child: SelectableText(
                       content,
                       style: TextStyle(
-                        fontSize: settings.fontSize,
-                        height: 1.6,
+                        fontSize: settings.txt.fontSize,
+                        height: settings.txt.lineHeight,
                         color: fgColor,
                       ),
                     ),

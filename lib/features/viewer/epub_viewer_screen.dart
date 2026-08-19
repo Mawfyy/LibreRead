@@ -93,7 +93,7 @@ class _EpubViewerScreenState extends State<EpubViewerScreen>
     final bgColor = settings.backgroundColor;
     final isHorizontal = settings.layout == ReadingLayout.horizontal;
     final displaySettings = EpubDisplaySettings(
-      fontSize: settings.fontSize.round(),
+      fontSize: settings.epub.fontSize.round(),
       theme: ReaderSettingsService.epubThemeFor(settings),
       flow: isHorizontal ? EpubFlow.paginated : EpubFlow.scrolled,
       snap: isHorizontal,
