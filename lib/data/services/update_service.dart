@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class UpdateInfo {
   final String version;
@@ -23,13 +24,30 @@ class UpdateService {
   static const String _latestReleaseApi =
       'https://api.github.com/repos/Mawfyy/LibreRead/releases/latest';
 
-  static Future<UpdateInfo?> checkForUpdate() async {
+  static const String _cacheLatestVersionKey = 'updates_latest_version';
+  static const String _cacheLatestUrlKey = 'updates_latest_url';
+  static const String _cacheLatestNotesKey = 'updates_latest_notes';
+  static const String _cacheLastCheckedKey = 'updates_last_checked_at';
+  static const Duration _cacheTtl = Duration(hours: 1);
+
+  static Future<UpdateInfo?> checkForUpdate({bool forceRefresh = false}) async {
+    final prefs = await SharedPreferences.getInstance();
+    final packageInfo = await PackageInfo.fromPlatform();
+
+    final cached = await _cachedUpdateIfNewer(prefs, packageInfo.version, forceRefresh);
+    if (cached != null) return cached;
+
     try {
       final response = await http.get(
         Uri.parse(_latestReleaseApi),
-        headers: {'Accept': 'application/vnd.github+json'},
+        headers: {
+          'Accept': 'application/vnd.github+json',
+          'User-Agent': 'LibreRead',
+        },
       );
-      if (response.statusCode != 200) return null;
+      if (response.statusCode != 200) {
+        return await _cachedUpdateIfNewer(prefs, packageInfo.version, false);
+      }
 
       final data = jsonDecode(response.body) as Map<String, dynamic>;
       final tag = data['tag_name'] as String?;
@@ -46,17 +64,54 @@ class UpdateService {
       }
       if (apkUrl == null) return null;
 
-      final packageInfo = await PackageInfo.fromPlatform();
-      if (!_isNewer(version, packageInfo.version)) return null;
-
-      return UpdateInfo(
+      final update = UpdateInfo(
         version: version,
         url: apkUrl,
         releaseNotes: data['body'] as String? ?? '',
       );
+
+      await _cacheUpdate(prefs, update);
+
+      if (!_isNewer(version, packageInfo.version)) return null;
+      return update;
     } catch (_) {
-      return null;
+      return await _cachedUpdateIfNewer(prefs, packageInfo.version, false);
     }
+  }
+
+  static Future<UpdateInfo?> _cachedUpdateIfNewer(
+    SharedPreferences prefs,
+    String installedVersion,
+    bool allowStale,
+  ) async {
+    final version = prefs.getString(_cacheLatestVersionKey);
+    final url = prefs.getString(_cacheLatestUrlKey);
+    if (version == null || url == null) return null;
+
+    if (!allowStale) {
+      final checkedAt = prefs.getInt(_cacheLastCheckedKey);
+      if (checkedAt == null) return null;
+      final cacheAge =
+          DateTime.now().difference(DateTime.fromMillisecondsSinceEpoch(checkedAt));
+      if (cacheAge > _cacheTtl) return null;
+    }
+
+    if (!_isNewer(version, installedVersion)) return null;
+    return UpdateInfo(
+      version: version,
+      url: url,
+      releaseNotes: prefs.getString(_cacheLatestNotesKey) ?? '',
+    );
+  }
+
+  static Future<void> _cacheUpdate(SharedPreferences prefs, UpdateInfo update) {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    return Future.wait([
+      prefs.setString(_cacheLatestVersionKey, update.version),
+      prefs.setString(_cacheLatestUrlKey, update.url),
+      prefs.setString(_cacheLatestNotesKey, update.releaseNotes),
+      prefs.setInt(_cacheLastCheckedKey, now),
+    ]);
   }
 
   static bool _isNewer(String latest, String installed) {
