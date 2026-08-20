@@ -4,27 +4,29 @@ import '../../data/models/recent_file.dart';
 import '../../data/models/reader_settings.dart';
 import '../../data/services/reader_settings_service.dart';
 import 'widgets/eye_care_filter.dart';
+import 'widgets/immersive_reader.dart';
 
-class TxtViewerScreen extends StatelessWidget {
+class TxtViewerScreen extends StatefulWidget {
   final RecentFile file;
 
   const TxtViewerScreen({super.key, required this.file});
 
+  @override
+  State<TxtViewerScreen> createState() => _TxtViewerScreenState();
+}
+
+class _TxtViewerScreenState extends State<TxtViewerScreen> {
   Future<String> _loadContent() async {
-    return File(file.path).readAsString();
+    return File(widget.file.path).readAsString();
   }
 
   @override
   Widget build(BuildContext context) {
     final settings = ReaderSettingsService.settingsFor(ReaderFormat.txt);
     final bgColor = settings.backgroundColor;
-    final fgColor = settings.textColor;
 
-    return Scaffold(
-      backgroundColor: bgColor,
-      appBar: AppBar(
-        title: Text(file.name),
-      ),
+    return ImmersiveReader(
+      title: widget.file.name,
       body: EyeCareFilter(
         settings: settings,
         child: FutureBuilder<String>(
@@ -55,7 +57,7 @@ class TxtViewerScreen extends StatelessWidget {
                       style: TextStyle(
                         fontSize: settings.txt.fontSize,
                         height: settings.txt.lineHeight,
-                        color: fgColor,
+                        color: settings.textColor,
                       ),
                     ),
                   ),
@@ -65,6 +67,16 @@ class TxtViewerScreen extends StatelessWidget {
           },
         ),
       ),
+      fullscreen: settings.fullscreen,
+      onFullscreenChanged: (value) async {
+        final current = ReaderSettingsService.settingsFor(ReaderFormat.txt);
+        await ReaderSettingsService.update(
+          ReaderFormat.txt,
+          current.copyWith(fullscreen: value),
+        );
+        if (mounted) setState(() {});
+      },
+      backgroundColor: bgColor,
     );
   }
 }

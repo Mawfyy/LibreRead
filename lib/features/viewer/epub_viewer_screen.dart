@@ -10,6 +10,7 @@ import '../../data/services/epub_bookmark_service.dart';
 import '../../data/services/reader_settings_service.dart';
 import '../../data/services/reading_position_service.dart';
 import '../../core/constants/app_strings.dart';
+import 'widgets/immersive_reader.dart';
 
 class EpubViewerScreen extends StatefulWidget {
   final RecentFile file;
@@ -99,37 +100,39 @@ class _EpubViewerScreenState extends State<EpubViewerScreen>
       snap: isHorizontal,
     );
 
-    return Scaffold(
-      backgroundColor: bgColor,
-      appBar: AppBar(
-        title: Text(
-          widget.file.name,
-          style: const TextStyle(fontSize: 14),
+    return ImmersiveReader(
+      title: widget.file.name,
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.bookmark_outline),
+          tooltip: AppStrings.bookmarks,
+          onPressed: _showBookmarks,
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.bookmark_outline),
-            tooltip: AppStrings.bookmarks,
-            onPressed: _showBookmarks,
-          ),
-          IconButton(
-            icon: const Icon(Icons.search),
-            tooltip: AppStrings.search,
-            onPressed: _showSearch,
-          ),
-        ],
-      ),
+        IconButton(
+          icon: const Icon(Icons.search),
+          tooltip: AppStrings.search,
+          onPressed: _showSearch,
+        ),
+      ],
       drawer: _buildTocDrawer(),
-      body: Column(
-        children: [
-          LinearProgressIndicator(
-            value: _progress,
-            backgroundColor: Colors.transparent,
-          ),
-          Expanded(child: _buildBody(displaySettings)),
-        ],
+      body: _buildBody(displaySettings),
+      bottom: LinearProgressIndicator(
+        value: _progress,
+        backgroundColor: Colors.transparent,
       ),
+      fullscreen: settings.fullscreen,
+      onFullscreenChanged: _toggleFullscreen,
+      backgroundColor: bgColor,
     );
+  }
+
+  Future<void> _toggleFullscreen(bool value) async {
+    final current = ReaderSettingsService.settingsFor(ReaderFormat.epub);
+    await ReaderSettingsService.update(
+      ReaderFormat.epub,
+      current.copyWith(fullscreen: value),
+    );
+    if (mounted) setState(() {});
   }
 
   Widget _buildTocDrawer() {

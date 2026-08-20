@@ -194,6 +194,7 @@ class ReaderSettings {
   final ReadingLayout layout;
   final bool blueLightEnabled;
   final double blueLightIntensity;
+  final bool fullscreen;
   final EpubSettings epub;
   final PdfSettings pdf;
   final TxtSettings txt;
@@ -203,6 +204,7 @@ class ReaderSettings {
     this.layout = ReadingLayout.vertical,
     this.blueLightEnabled = false,
     this.blueLightIntensity = 0.3,
+    this.fullscreen = false,
     this.epub = const EpubSettings(),
     this.pdf = const PdfSettings(),
     this.txt = const TxtSettings(),
@@ -259,6 +261,7 @@ class ReaderSettings {
     ReadingLayout? layout,
     bool? blueLightEnabled,
     double? blueLightIntensity,
+    bool? fullscreen,
     EpubSettings? epub,
     PdfSettings? pdf,
     TxtSettings? txt,
@@ -268,6 +271,7 @@ class ReaderSettings {
       layout: layout ?? this.layout,
       blueLightEnabled: blueLightEnabled ?? this.blueLightEnabled,
       blueLightIntensity: blueLightIntensity ?? this.blueLightIntensity,
+      fullscreen: fullscreen ?? this.fullscreen,
       epub: epub ?? this.epub,
       pdf: pdf ?? this.pdf,
       txt: txt ?? this.txt,

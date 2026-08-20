@@ -107,6 +107,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ],
             ),
           ),
+          SwitchListTile(
+            title: const Text(AppStrings.fullscreenReading),
+            value: _settings.fullscreen,
+            onChanged: (value) async {
+              await _updateSettings(_settings.copyWith(fullscreen: value));
+            },
+          ),
           const Divider(height: 32),
           _buildSectionTitle(context, '${AppStrings.eyeCare} (${_formatLabel()})'),
           SwitchListTile(

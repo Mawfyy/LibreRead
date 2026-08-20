@@ -6,6 +6,7 @@ import '../../data/models/recent_file.dart';
 import '../../data/models/reader_settings.dart';
 import '../../data/services/reader_settings_service.dart';
 import 'widgets/eye_care_filter.dart';
+import 'widgets/immersive_reader.dart';
 
 class PdfViewerScreen extends StatefulWidget {
   final RecentFile file;
@@ -20,13 +21,9 @@ class _PdfViewerScreenState extends State<PdfViewerScreen> {
   @override
   Widget build(BuildContext context) {
     final settings = ReaderSettingsService.settingsFor(ReaderFormat.pdf);
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          widget.file.name,
-          style: const TextStyle(fontSize: 14),
-        ),
-      ),
+    final bgColor = settings.backgroundColor;
+    return ImmersiveReader(
+      title: widget.file.name,
       body: EyeCareFilter(
         settings: settings,
         child: PdfViewer.file(
@@ -53,6 +50,16 @@ class _PdfViewerScreenState extends State<PdfViewerScreen> {
           ),
         ),
       ),
+      fullscreen: settings.fullscreen,
+      onFullscreenChanged: (value) async {
+        final current = ReaderSettingsService.settingsFor(ReaderFormat.pdf);
+        await ReaderSettingsService.update(
+          ReaderFormat.pdf,
+          current.copyWith(fullscreen: value),
+        );
+        if (mounted) setState(() {});
+      },
+      backgroundColor: bgColor,
     );
   }
 

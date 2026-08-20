@@ -35,6 +35,8 @@ class ReaderSettingsService {
       blueLightIntensity:
           prefs.getDouble('${prefix}_blue_light_intensity') ??
               recommended.blueLightIntensity,
+      fullscreen:
+          prefs.getBool('${prefix}_fullscreen') ?? recommended.fullscreen,
       epub: _loadEpub(prefs, prefix),
       pdf: _loadPdf(prefs, prefix),
       txt: _loadTxt(prefs, prefix),
@@ -92,6 +94,7 @@ class ReaderSettingsService {
       '${prefix}_blue_light_intensity',
       settings.blueLightIntensity,
     );
+    await prefs.setBool('${prefix}_fullscreen', settings.fullscreen);
     await _saveEpub(prefs, prefix, settings.epub);
     await _savePdf(prefs, prefix, settings.pdf);
     await _saveTxt(prefs, prefix, settings.txt);
@@ -146,6 +149,7 @@ class ReaderSettingsService {
       prefs.remove('${prefix}_layout'),
       prefs.remove('${prefix}_blue_light'),
       prefs.remove('${prefix}_blue_light_intensity'),
+      prefs.remove('${prefix}_fullscreen'),
       prefs.remove('${prefix}_epub_font_family'),
       prefs.remove('${prefix}_epub_font_size'),
       prefs.remove('${prefix}_epub_line_height'),
