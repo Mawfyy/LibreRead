@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
@@ -29,6 +30,25 @@ class UpdateService {
   static const String _cacheLatestNotesKey = 'updates_latest_notes';
   static const String _cacheLastCheckedKey = 'updates_last_checked_at';
   static const Duration _cacheTtl = Duration(hours: 1);
+
+  static const MethodChannel _channel =
+      MethodChannel('com.libre.read/signatures');
+
+  static Future<String?> getInstalledAppSignature() async {
+    try {
+      return await _channel.invokeMethod('getInstalledAppSignature');
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static Future<String?> getApkSignature(String apkPath) async {
+    try {
+      return await _channel.invokeMethod('getApkSignature', apkPath);
+    } catch (_) {
+      return null;
+    }
+  }
 
   static Future<UpdateInfo?> checkForUpdate({bool forceRefresh = false}) async {
     final prefs = await SharedPreferences.getInstance();

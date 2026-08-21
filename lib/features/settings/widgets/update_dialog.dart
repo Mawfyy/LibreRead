@@ -103,6 +103,30 @@ class UpdateDialogs {
       });
       if (context.mounted) Navigator.of(context).pop();
       if (!context.mounted) return;
+
+      final installedSig = await UpdateService.getInstalledAppSignature();
+      final apkSig = await UpdateService.getApkSignature(path);
+
+      if (installedSig != null && apkSig != null && installedSig != apkSig) {
+        if (context.mounted) {
+          await showDialog<void>(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              title: const Text(AppStrings.signatureMismatchTitle),
+              content: const Text(AppStrings.signatureMismatchMessage),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text(AppStrings.ok),
+                ),
+              ],
+            ),
+          );
+        }
+        return;
+      }
+
+      if (!context.mounted) return;
       await _openInstaller(context, path);
     } catch (e) {
       if (context.mounted) Navigator.of(context).pop();

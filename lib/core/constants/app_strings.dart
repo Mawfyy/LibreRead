@@ -60,4 +60,9 @@ class AppStrings {
   static const String installPermissionRequired = 'Permission to install apps is required';
   static const String installFailed = 'Failed to open installer';
   static const String couldNotOpenReleasePage = 'Could not open release page';
+  static const String signatureMismatchTitle = 'Incompatible version';
+  static const String signatureMismatchMessage =
+      'The downloaded update was signed with a different key than the installed app. '
+      'Please uninstall the current app first, then reinstall the update from the releases page.';
+  static const String ok = 'OK';
 }
