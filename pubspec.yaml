@@ -1,7 +1,7 @@
 name: libre_read
 description: App to read EPUB and text documents.
 publish_to: 'none'
-version: 1.0.31+31
+version: 1.0.33+33
 
 environment:
   sdk: ^3.8.0
